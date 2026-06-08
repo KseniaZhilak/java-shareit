@@ -1,10 +1,13 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.expection.ConflictException;
+import ru.practicum.shareit.expection.NotFoundException;
 import ru.practicum.shareit.user.dao.UserStorageInMemory;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static ru.practicum.shareit.user.UserMapper.toUser;
 import static ru.practicum.shareit.user.UserMapper.toUserDto;
@@ -19,30 +22,42 @@ public class UserServiceImpl implements UserService {
     }
 
     public Collection<UserDto> getAll() {
-        return null;
+        return userStorageInMemory.getAll().stream().map(UserMapper::toUserDto).toList();
     }
 
     public UserDto getUserById(long id) {
-        return null;
+        Optional<User> user = userStorageInMemory.getUserById(id);
+        if (user.isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
+        return toUserDto(user.get());
     }
 
     public UserDto createUser(UserDto userDto) {
-        boolean emailExists = userStorageInMemory.isEmailExist(toUser(userDto));
+        boolean emailExists = userStorageInMemory.isEmailExist(userDto.getEmail());
         if (emailExists) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new ConflictException("Email already exists");
         }
-
         User user = userStorageInMemory.create(toUser(userDto));
-
         return toUserDto(user);
     }
 
     public UserDto updateUser(long id, UserDto userDto) {
-        return null;
+        boolean emailExists = userStorageInMemory.isEmailExist(userDto.getEmail());
+        if (emailExists) {
+            throw new ConflictException("Email already exists");
+        }
+
+        Optional<User> user = userStorageInMemory.getUserById(id);
+        if (user.isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
+        User userUpdated = userStorageInMemory.update(id, toUser(userDto));
+        return toUserDto(userUpdated);
     }
 
     public void deleteUser(long id) {
-
+        userStorageInMemory.deleteUser(id);
     }
 
 }
