@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 
 import java.util.Collection;
 
@@ -14,9 +15,9 @@ public interface ItemService {
 
     void delete(long id, long userId);
 
-    ItemDto update(long id, long userId);
+    ItemUpdateDto update(long id, long userId, ItemUpdateDto itemUpdateDto);
 
-    ItemDto search(String text, long userId);
+    Collection<ItemDto> search(String text, long userId);
 
 
 }

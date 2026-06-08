@@ -1,9 +1,8 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.expection.ConflictException;
-import ru.practicum.shareit.expection.NotFoundException;
-import ru.practicum.shareit.user.dao.UserStorageInMemory;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.user.dao.UserStorage;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Collection;
@@ -15,49 +14,45 @@ import static ru.practicum.shareit.user.UserMapper.toUserDto;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final UserStorageInMemory userStorageInMemory;
+    private final UserStorage userStorage;
 
-    public UserServiceImpl(UserStorageInMemory userStorageInMemory) {
-        this.userStorageInMemory = userStorageInMemory;
+    public UserServiceImpl(UserStorage userStorage) {
+        this.userStorage = userStorage;
     }
 
+    @Override
     public Collection<UserDto> getAll() {
-        return userStorageInMemory.getAll().stream().map(UserMapper::toUserDto).toList();
+        return userStorage.getAll().stream().map(UserMapper::toUserDto).toList();
     }
 
+    @Override
     public UserDto getUserById(long id) {
-        Optional<User> user = userStorageInMemory.getUserById(id);
+        Optional<User> user = userStorage.getUserById(id);
         if (user.isEmpty()) {
             throw new NotFoundException("User not found");
         }
         return toUserDto(user.get());
     }
 
+    @Override
     public UserDto createUser(UserDto userDto) {
-        boolean emailExists = userStorageInMemory.isEmailExist(userDto.getEmail());
-        if (emailExists) {
-            throw new ConflictException("Email already exists");
-        }
-        User user = userStorageInMemory.create(toUser(userDto));
+        User user = userStorage.create(toUser(userDto));
         return toUserDto(user);
     }
 
+    @Override
     public UserDto updateUser(long id, UserDto userDto) {
-        boolean emailExists = userStorageInMemory.isEmailExist(userDto.getEmail());
-        if (emailExists) {
-            throw new ConflictException("Email already exists");
-        }
-
-        Optional<User> user = userStorageInMemory.getUserById(id);
+        Optional<User> user = userStorage.getUserById(id);
         if (user.isEmpty()) {
             throw new NotFoundException("User not found");
         }
-        User userUpdated = userStorageInMemory.update(id, toUser(userDto));
+        User userUpdated = userStorage.update(id, toUser(userDto));
         return toUserDto(userUpdated);
     }
 
+    @Override
     public void deleteUser(long id) {
-        userStorageInMemory.deleteUser(id);
+        userStorage.deleteUser(id);
     }
 
 }

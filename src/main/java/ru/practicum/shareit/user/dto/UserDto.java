@@ -10,12 +10,15 @@ import lombok.Data;
 @Builder
 public class UserDto {
 
-    public Long id;
-    public String name;
+    private Long id;
 
-    @NotNull
+    @NotNull(message = "Поле name обязательно")
+    @NotBlank
+    private String name;
+
+    @NotNull(message = "Поле email обязательно")
     @NotBlank
     @Email
-    public String email;
+    private String email;
 
 }

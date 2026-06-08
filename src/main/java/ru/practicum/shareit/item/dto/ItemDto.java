@@ -1,17 +1,27 @@
 package ru.practicum.shareit.item.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.user.User;
 
 @Data
 @Builder
 public class ItemDto {
 
-    public Long id;
+    private Long id;
+
+    @NotNull(message = "Поле name обязательно")
+    @NotBlank
     private String name;
+
+    @NotNull(message = "Поле description обязательно")
+    @NotBlank
     private String description;
-    private Boolean isAvailable;
+
+    @NotNull(message = "Поле isAvailable обязательно")
+    private Boolean available;
+
     private Long request;
 
 }

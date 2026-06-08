@@ -1,64 +1,87 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.dao.ItemStorageInMemory;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dao.ItemStorage;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dao.UserStorageInMemory;
+import ru.practicum.shareit.user.dao.UserStorage;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
-import static ru.practicum.shareit.item.ItemMapper.toItem;
-import static ru.practicum.shareit.item.ItemMapper.toItemDto;
+import static ru.practicum.shareit.item.ItemMapper.*;
 
 @Service
 public class ItemServiceImpl implements ItemService {
 
-    private final ItemStorageInMemory itemStorageInMemory;
-    private final UserStorageInMemory userStorageInMemory;
+    private final ItemStorage itemStorage;
+    private final UserStorage userStorage;
 
-    public ItemServiceImpl(ItemStorageInMemory itemStorageInMemory, UserStorageInMemory userStorageInMemory) {
-        this.itemStorageInMemory = itemStorageInMemory;
-        this.userStorageInMemory = userStorageInMemory;
+    public ItemServiceImpl(ItemStorage itemStorage, UserStorage userStorage) {
+        this.itemStorage = itemStorage;
+        this.userStorage = userStorage;
     }
 
     @Override
     public Collection<ItemDto> getAll(long userId) {
-        return List.of();
+        Optional<User> user = userStorage.getUserById(userId);
+        if (user.isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
+
+        Collection<Item> all = itemStorage.getAll(userId);
+        return all.stream().map(ItemMapper::toItemDto).toList();
     }
 
     @Override
     public ItemDto getItemById(long id, long userId) {
-        return null;
+        if (userStorage.getUserById(userId).isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
+
+        Optional<Item> item = itemStorage.getItemById(id);
+        if (item.isEmpty()) {
+            throw new NotFoundException("Item not found");
+        }
+        return toItemDto(item.get());
     }
 
     @Override
     public ItemDto add(ItemDto itemDto, long userId) {
-        Optional<User> user = userStorageInMemory.getUserById(userId);
+        Optional<User> user = userStorage.getUserById(userId);
         if (user.isEmpty()) {
-            throw new IllegalArgumentException("User not found");
+            throw new NotFoundException("User not found");
         }
 
         Item item = toItem(itemDto);
         item.setOwner(user.get());
-        Item itemCreated = itemStorageInMemory.create(item);
+        Item itemCreated = itemStorage.create(item);
         return toItemDto(itemCreated);
     }
 
     @Override
+    public ItemUpdateDto update(long id, long userId, ItemUpdateDto patch) {
+        Optional<User> user = userStorage.getUserById(userId);
+        if (user.isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
+
+        Item updated = itemStorage.update(id, userId, toItem(patch));
+        return toItemUpdateDto(updated);
+    }
+
+    @Override
     public void delete(long id, long userId) {
-
     }
 
     @Override
-    public ItemDto update(long id, long userId) {
-        return null;
-    }
+    public Collection<ItemDto> search(String text, long userId) {
+        if (userStorage.getUserById(userId).isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
 
-    @Override
-    public ItemDto search(String text, long userId) {
-        return null;
+        return itemStorage.search(text).stream().map(ItemMapper::toItemDto).toList();
     }
 }
