@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public class UserStorageInMemory implements UserStorage {
 
+    private long nextId = 1;
+
     private final Map<Long, User> users = new HashMap<>();
 
     @Override
@@ -66,8 +68,6 @@ public class UserStorageInMemory implements UserStorage {
         return users.values().stream()
                 .anyMatch(e -> e.getEmail().equalsIgnoreCase(email));
     }
-
-    private long nextId = 1;
 
     private long getNextId() {
         return nextId++;

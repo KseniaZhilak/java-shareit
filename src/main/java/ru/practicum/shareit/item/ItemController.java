@@ -1,9 +1,7 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 
@@ -43,12 +41,6 @@ public class ItemController {
     @GetMapping("/search")
     public Collection<ItemDto> search(@RequestParam String text, @RequestHeader("X-Sharer-User-Id") long userId) {
         return itemService.search(text, userId);
-    }
-
-    @DeleteMapping("/{itemId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("itemId") long id, @RequestHeader("X-Sharer-User-Id") long userId) {
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Метод delete/items ещё не реализован.");
     }
 
 }

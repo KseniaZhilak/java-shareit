@@ -73,10 +73,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void delete(long id, long userId) {
-    }
-
-    @Override
     public Collection<ItemDto> search(String text, long userId) {
         if (userStorage.getUserById(userId).isEmpty()) {
             throw new NotFoundException("User not found");

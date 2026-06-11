@@ -10,6 +10,8 @@ import java.util.*;
 @Repository
 public class ItemStorageInMemory implements ItemStorage {
 
+    private long nextId = 1;
+
     private final Map<Long, Item> items = new HashMap<>();
 
     @Override
@@ -72,8 +74,6 @@ public class ItemStorageInMemory implements ItemStorage {
                 .filter(Item::getAvailable)
                 .toList();
     }
-
-    private long nextId = 1;
 
     private long getNextId() {
         return nextId++;
