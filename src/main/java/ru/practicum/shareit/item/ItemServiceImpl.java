@@ -1,83 +1,96 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dao.ItemStorage;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.dao.UserStorage;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import static ru.practicum.shareit.item.ItemMapper.*;
 
 @Service
+@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
-    private final ItemStorage itemStorage;
-    private final UserStorage userStorage;
-
-    public ItemServiceImpl(ItemStorage itemStorage, UserStorage userStorage) {
-        this.itemStorage = itemStorage;
-        this.userStorage = userStorage;
-    }
+    private final ItemRepository itemRepository;
+    public final UserRepository userRepository;
 
     @Override
     public Collection<ItemDto> getAll(long userId) {
-        Optional<User> user = userStorage.getUserById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("User not found");
-        }
-
-        Collection<Item> all = itemStorage.getAll(userId);
-        return all.stream().map(ItemMapper::toItemDto).toList();
+        return itemRepository.findAllByOwnerId(userId)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .toList();
     }
 
     @Override
     public ItemDto getItemById(long id, long userId) {
-        if (userStorage.getUserById(userId).isEmpty()) {
+
+        if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found");
         }
 
-        Optional<Item> item = itemStorage.getItemById(id);
-        if (item.isEmpty()) {
-            throw new NotFoundException("Item not found");
-        }
-        return toItemDto(item.get());
+        Item item = itemRepository.findByIdAndOwnerId(id, userId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        return toItemDto(item);
     }
 
     @Override
     public ItemDto add(ItemDto itemDto, long userId) {
-        Optional<User> user = userStorage.getUserById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("User not found");
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Item item = toItem(itemDto);
-        item.setOwner(user.get());
-        Item itemCreated = itemStorage.create(item);
+        item.setOwner(user);
+        Item itemCreated = itemRepository.save(item);
         return toItemDto(itemCreated);
     }
 
     @Override
     public ItemUpdateDto update(long id, long userId, ItemUpdateDto patch) {
-        Optional<User> user = userStorage.getUserById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("User not found");
+
+        Item item = itemRepository.findByIdAndOwnerId(id, userId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (patch.getName() != null) {
+            item.setName(patch.getName());
         }
 
-        Item updated = itemStorage.update(id, userId, toItem(patch));
+        if (patch.getDescription() != null) {
+            item.setDescription(patch.getDescription());
+        }
+
+        if (patch.getAvailable() != null) {
+            item.setAvailable(patch.getAvailable());
+        }
+
+        Item updated = itemRepository.save(item);
         return toItemUpdateDto(updated);
     }
 
     @Override
     public Collection<ItemDto> search(String text, long userId) {
-        if (userStorage.getUserById(userId).isEmpty()) {
+        if (text.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found");
         }
 
-        return itemStorage.search(text).stream().map(ItemMapper::toItemDto).toList();
+        return itemRepository.search(text)
+                .stream()
+                .filter(Item::getAvailable)
+                .map(ItemMapper::toItemDto).toList();
+
     }
 }
