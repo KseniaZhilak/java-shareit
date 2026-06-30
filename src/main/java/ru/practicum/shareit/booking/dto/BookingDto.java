@@ -5,6 +5,9 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import ru.practicum.shareit.booking.Status;
+import ru.practicum.shareit.item.dto.BookedItemDto;
+import ru.practicum.shareit.user.dto.UserBookerDto;
 import ru.practicum.shareit.validation.ValidBookingDates;
 
 import java.time.LocalDateTime;
@@ -23,5 +26,11 @@ public class BookingDto {
     private LocalDateTime end;
 
     private Long itemId;
+
+    private Status status;
+
+    private BookedItemDto item;
+
+    private UserBookerDto booker;
 
 }

@@ -6,7 +6,6 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingUpdateDto;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
@@ -15,7 +14,6 @@ import ru.practicum.shareit.user.UserRepository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import static ru.practicum.shareit.booking.BookingMapper.*;
 import static ru.practicum.shareit.booking.Status.APPROVED;
@@ -75,7 +73,21 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto getBookingById(long id, long userId) {
-        return null;
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Booking not found"));
+
+        long bookerId = booking.getBooker().getId();
+        long ownerId = booking.getItem().getOwner().getId();
+
+        if (userId != bookerId && userId != ownerId) {
+            throw new NotFoundException("Access denied: user is not the booker or item owner");
+        }
+
+        return toBookingDto(booking);
     }
 
     @Override
