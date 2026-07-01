@@ -2,14 +2,21 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.item.dto.ItemsDto;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.item.ItemMapper.*;
 
@@ -19,12 +26,35 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     public final UserRepository userRepository;
+    public final BookingRepository bookingRepository;
 
     @Override
-    public Collection<ItemDto> getAll(long userId) {
-        return itemRepository.findAllByOwnerId(userId)
+    public Collection<ItemsDto> getAll(long userId) {
+        List<Item> items = itemRepository.findAllByOwnerId(userId);
+
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .toList();
+
+        Map<Long, Booking> bookings = bookingRepository.findAllByItemIdIn(itemIds)
                 .stream()
-                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toMap(
+                        b -> b.getItem().getId(),
+                        Function.identity(),
+                        (existing, replacement) -> existing.getStart().isAfter(replacement.getStart())
+                                ? existing
+                                : replacement
+                ));
+
+        return items.stream()
+                .map(ItemMapper::toItemsDto)
+                .peek(dto -> {
+                    Booking booking = bookings.get(dto.getId());
+                    if (booking != null) {
+                        dto.setStart(booking.getStart());
+                        dto.setEnd(booking.getEnd());
+                    }
+                })
                 .toList();
     }
 

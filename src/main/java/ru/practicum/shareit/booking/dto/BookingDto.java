@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 @ValidBookingDates
 public class BookingDto {
 
+    private Long id;
+
     @NotNull(message = "Дата начала аренды обязательна")
     @FutureOrPresent
     private LocalDateTime start;

@@ -6,6 +6,8 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingUpdateDto;
 
+import java.util.Collection;
+
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
@@ -29,6 +31,18 @@ public class BookingController {
     @GetMapping("/{bookingId}")
     public BookingDto getBookingById(@PathVariable("bookingId") long id, @RequestHeader("X-Sharer-User-Id") long userId) {
         return bookingService.getBookingById(id, userId);
+    }
+
+    @GetMapping
+    public Collection<BookingDto> getAllByUser(@RequestHeader("X-Sharer-User-Id") long userId,
+                                               @RequestParam(name = "state", defaultValue = "ALL") State state) {
+        return bookingService.getAllByUser(userId, state);
+    }
+
+    @GetMapping("/owner")
+    public Collection<BookingDto> getAllByOwner(@RequestHeader("X-Sharer-User-Id") long userId,
+                                                @RequestParam(name = "state", defaultValue = "ALL") State state) {
+        return bookingService.getAllByOwner(userId, state);
     }
 
 }

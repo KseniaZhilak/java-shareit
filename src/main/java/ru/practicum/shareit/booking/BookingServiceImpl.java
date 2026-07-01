@@ -12,12 +12,12 @@ import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 import static ru.practicum.shareit.booking.BookingMapper.*;
-import static ru.practicum.shareit.booking.Status.APPROVED;
-import static ru.practicum.shareit.booking.Status.WAITING;
+import static ru.practicum.shareit.booking.Status.*;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +60,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findByIdAndOwnerId(booking.getItem().getId(), userId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if(approved) {
+        if (approved) {
             item.setAvailable(false);
             booking.setStatus(APPROVED);
         } else {
@@ -91,12 +91,54 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> getAllByUser(long userId) {
-        return List.of();
+    public Collection<BookingDto> getAllByUser(long userId, State state) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+
+        List<Booking> bookings = bookingRepository.findAllByBookerId(userId);
+        List<Booking> bookingsByFilter = searchByState(bookings, state);
+
+        return bookingsByFilter.stream()
+                .sorted((d1, d2) -> d2.getStart().compareTo(d1.getStart()))
+                .map(BookingMapper::toBookingDto)
+                .toList();
     }
 
     @Override
-    public Collection<BookingDto> getAllByOwner(long userId) {
-        return List.of();
+    public Collection<BookingDto> getAllByOwner(long userId, State state) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+
+        List<Item> items = itemRepository.findAllByOwnerId(userId);
+
+        List<Booking> bookings = bookingRepository.findAllByItemIdIn(items.stream().map(Item::getId).toList());
+        List<Booking> bookingsByFilter = searchByState(bookings, state);
+
+        return bookingsByFilter.stream().map(BookingMapper::toBookingDto).toList();
     }
+
+    private List<Booking> searchByState(List<Booking> bookings, State state) {
+        switch (state) {
+            case WAITING:
+                bookings = bookings.stream().filter(b -> b.getStatus() == WAITING).toList();
+                break;
+            case REJECTED:
+                bookings = bookings.stream().filter(b -> b.getStatus() == REJECTED).toList();
+                break;
+            case CURRENT:
+                bookings = bookings.stream().filter(b -> b.getStatus() == APPROVED).toList();
+            case PAST:
+                bookings = bookings.stream().filter(b -> b.getEnd().isBefore(LocalDateTime.now())).toList();
+            case FUTURE:
+                bookings = bookings.stream().filter(b -> b.getStart().isAfter(LocalDateTime.now())).toList();
+            case ALL:
+                break;
+            default:
+                throw new BadRequestException("Invalid state");
+        }
+        return bookings;
+    }
+
 }
