@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
+import java.util.Set;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -36,5 +38,8 @@ public class Item {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "request_id")
     private ItemRequest request;
+
+    @Transient
+    private Set<Comment> comments;
 
 }

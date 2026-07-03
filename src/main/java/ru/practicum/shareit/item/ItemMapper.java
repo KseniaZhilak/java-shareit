@@ -5,6 +5,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.dto.ItemsDto;
 
+import java.util.List;
+
 public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
@@ -14,6 +16,7 @@ public class ItemMapper {
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .request(item.getRequest() != null ? item.getRequest().getId() : null)
+                .comments(List.of())
                 .build();
     }
 
@@ -40,14 +43,6 @@ public class ItemMapper {
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
-                .build();
-    }
-
-    public static Item toItem(ItemUpdateDto itemUpdateDto) {
-        return Item.builder()
-                .name(itemUpdateDto.getName())
-                .description(itemUpdateDto.getDescription())
-                .available(itemUpdateDto.getAvailable())
                 .build();
     }
 
