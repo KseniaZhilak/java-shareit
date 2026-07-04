@@ -16,7 +16,7 @@ import static ru.practicum.shareit.user.UserMapper.toUserDto;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    public final UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Collection<UserDto> getAll() {

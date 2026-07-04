@@ -30,9 +30,9 @@ import static ru.practicum.shareit.item.ItemMapper.*;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    public final UserRepository userRepository;
-    public final BookingRepository bookingRepository;
-    public final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     public Collection<ItemsDto> getAll(long userId) {

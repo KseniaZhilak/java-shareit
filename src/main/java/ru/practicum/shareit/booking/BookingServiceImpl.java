@@ -24,7 +24,7 @@ import static ru.practicum.shareit.booking.Status.*;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
-    public final UserRepository userRepository;
+    private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
     @Override
@@ -60,13 +60,15 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findByIdAndOwnerId(booking.getItem().getId(), userId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if (approved) {
+        if (Boolean.TRUE.equals(approved)) {
             item.setAvailable(false);
             booking.setStatus(APPROVED);
         } else {
             item.setAvailable(true);
-            booking.setStatus(WAITING);
+            booking.setStatus(REJECTED);
         }
+        bookingRepository.save(booking);
+        itemRepository.save(item);
 
         return toBookingUpdateDto(booking);
     }
