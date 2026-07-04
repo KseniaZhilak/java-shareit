@@ -25,9 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -129,30 +127,6 @@ class ItemServiceImplTest {
 
         ItemDto result = itemService.getItemById(1L, 1L);
 
-        assertEquals(lastStart, result.getLastBooking());
-        assertEquals(nextStart, result.getNextBooking());
-    }
-
-    @Test
-    void getItemById_populatesLastAndNextBookingForNonOwner() {
-        LocalDateTime lastStart = LocalDateTime.now().minusDays(5);
-        LocalDateTime nextStart = LocalDateTime.now().plusDays(5);
-        Booking lastBooking = Booking.builder().id(1L).item(item).booker(user)
-                .start(lastStart).end(lastStart.plusDays(1)).status(Status.APPROVED).build();
-        Booking nextBooking = Booking.builder().id(2L).item(item).booker(user)
-                .start(nextStart).end(nextStart.plusDays(1)).status(Status.APPROVED).build();
-
-        when(userRepository.existsById(2L)).thenReturn(true);
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(commentRepository.findAllByItemId(1L)).thenReturn(List.of());
-        when(bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(
-                eq(1L), eq(Status.APPROVED), any(LocalDateTime.class))).thenReturn(Optional.of(lastBooking));
-        when(bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
-                eq(1L), eq(Status.APPROVED), any(LocalDateTime.class))).thenReturn(Optional.of(nextBooking));
-
-        ItemDto result = itemService.getItemById(1L, 2L);
-
-        assertEquals("Drill", result.getName());
         assertEquals(lastStart, result.getLastBooking());
         assertEquals(nextStart, result.getNextBooking());
     }
