@@ -90,12 +90,14 @@ public class ItemServiceImpl implements ItemService {
         ItemDto itemDto = toItemDto(item);
         itemDto.setComments(comments);
 
-        LocalDateTime now = LocalDateTime.now();
-        bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(id, Status.APPROVED, now)
-                .ifPresent(booking -> itemDto.setLastBooking(booking.getStart()));
+        if (item.getOwner() != null && item.getOwner().getId() == userId) {
+            LocalDateTime now = LocalDateTime.now();
+            bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(id, Status.APPROVED, now)
+                    .ifPresent(booking -> itemDto.setLastBooking(booking.getStart()));
 
-        bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(id, Status.APPROVED, now)
-                .ifPresent(booking -> itemDto.setNextBooking(booking.getStart()));
+            bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(id, Status.APPROVED, now)
+                    .ifPresent(booking -> itemDto.setNextBooking(booking.getStart()));
+        }
 
         return itemDto;
     }
