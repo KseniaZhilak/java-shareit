@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import ru.practicum.shareit.user.dto.UserBookerDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
@@ -25,5 +26,9 @@ public class UserMapper {
                 .name(userUpdateDto.getName())
                 .email(userUpdateDto.getEmail())
                 .build();
+    }
+
+    public static UserBookerDto toUserBookerDto(User user) {
+        return UserBookerDto.builder().id(user.getId()).build();
     }
 }

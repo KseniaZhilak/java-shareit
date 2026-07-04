@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dao.UserStorage;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
@@ -17,14 +16,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -40,7 +38,7 @@ class UserServiceImplTest {
 
     @Test
     void getAll_returnsAllUsers() {
-        when(userStorage.getAll()).thenReturn(List.of(user));
+        when(userRepository.findAll()).thenReturn(List.of(user));
 
         Collection<UserDto> result = userService.getAll();
 
@@ -50,7 +48,7 @@ class UserServiceImplTest {
 
     @Test
     void getAll_emptyStorage_returnsEmptyList() {
-        when(userStorage.getAll()).thenReturn(List.of());
+        when(userRepository.findAll()).thenReturn(List.of());
 
         Collection<UserDto> result = userService.getAll();
 
@@ -59,7 +57,7 @@ class UserServiceImplTest {
 
     @Test
     void getUserById_existingUser_returnsUserDto() {
-        when(userStorage.getUserById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         UserDto result = userService.getUserById(1L);
 
@@ -69,19 +67,20 @@ class UserServiceImplTest {
 
     @Test
     void getUserById_unknownId_throwsNotFoundException() {
-        when(userStorage.getUserById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> userService.getUserById(99L));
     }
 
     @Test
     void createUser_savesAndReturnsUser() {
-        when(userStorage.create(any(User.class))).thenReturn(user);
+        when(userRepository.existsByEmailIgnoreCase(userDto.getEmail())).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         UserDto result = userService.createUser(userDto);
 
         assertEquals("Alice", result.getName());
-        verify(userStorage).create(any(User.class));
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
@@ -89,8 +88,8 @@ class UserServiceImplTest {
         UserUpdateDto patch = UserUpdateDto.builder().name("Bob").build();
         User updated = User.builder().id(1L).name("Bob").email("alice@example.com").build();
 
-        when(userStorage.getUserById(1L)).thenReturn(Optional.of(user));
-        when(userStorage.update(eq(1L), any(User.class))).thenReturn(updated);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(updated);
 
         UserDto result = userService.updateUser(1L, patch);
 
@@ -100,16 +99,16 @@ class UserServiceImplTest {
     @Test
     void updateUser_unknownId_throwsNotFoundException() {
         UserUpdateDto patch = UserUpdateDto.builder().name("Bob").build();
-        when(userStorage.getUserById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> userService.updateUser(99L, patch));
-        verify(userStorage, never()).update(anyLong(), any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     void deleteUser_existingUser_callsStorage() {
         userService.deleteUser(1L);
-        verify(userStorage).deleteUser(1L);
+        verify(userRepository).deleteById(1L);
     }
 
 }

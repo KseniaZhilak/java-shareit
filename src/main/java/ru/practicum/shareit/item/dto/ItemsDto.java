@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item.dto;
 
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -10,7 +12,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ItemDto {
+public class ItemsDto {
 
     private Long id;
 
@@ -27,10 +29,12 @@ public class ItemDto {
 
     private Long request;
 
+    @FutureOrPresent
+    private LocalDateTime start;
+
+    @Future
+    private LocalDateTime end;
+
     private List<CommentDto> comments;
-
-    private LocalDateTime nextBooking;
-
-    private LocalDateTime lastBooking;
 
 }
