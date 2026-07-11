@@ -25,7 +25,7 @@ public class ItemDto {
     @NotNull(message = "Поле isAvailable обязательно")
     private Boolean available;
 
-    private Long request;
+    private Long requestId;
 
     private List<CommentDto> comments;
 

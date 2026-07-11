@@ -11,14 +11,13 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.dto.ItemsDto;
+import ru.practicum.shareit.request.Request;
+import ru.practicum.shareit.request.RequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,6 +32,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final RequestRepository requestRepository;
 
     @Override
     public Collection<ItemsDto> getAll(long userId) {
@@ -108,6 +108,11 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         Item item = toItem(itemDto);
+        if (itemDto.getRequestId() != null) {
+            Optional<Request> optionalRequest = requestRepository
+                    .findById(itemDto.getRequestId());
+            optionalRequest.ifPresent(item::setRequest);
+        }
         item.setOwner(user);
         Item itemCreated = itemRepository.save(item);
         return toItemDto(itemCreated);

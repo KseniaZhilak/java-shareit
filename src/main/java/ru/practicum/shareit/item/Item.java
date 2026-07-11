@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.Request;
 import ru.practicum.shareit.user.User;
 
 import java.util.Set;
@@ -37,7 +37,7 @@ public class Item {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "request_id")
-    private ItemRequest request;
+    private Request request;
 
     @Transient
     private Set<Comment> comments;
