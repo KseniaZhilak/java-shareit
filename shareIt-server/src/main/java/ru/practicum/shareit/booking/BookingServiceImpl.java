@@ -131,10 +131,13 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case CURRENT:
                 bookings = bookings.stream().filter(b -> b.getStatus() == APPROVED).toList();
+                break;
             case PAST:
                 bookings = bookings.stream().filter(b -> b.getEnd().isBefore(LocalDateTime.now())).toList();
+                break;
             case FUTURE:
                 bookings = bookings.stream().filter(b -> b.getStart().isAfter(LocalDateTime.now())).toList();
+                break;
             case ALL:
                 break;
             default:

@@ -128,8 +128,26 @@ class RequestServiceImplIntegrationTest {
     }
 
     @Test
+    void getOwnRequests_unknownUser_throwsNotFoundException() {
+        assertThrows(NotFoundException.class, () -> requestService.getOwnRequests(9999L));
+    }
+
+    @Test
+    void getAllRequests_unknownUser_throwsNotFoundException() {
+        assertThrows(NotFoundException.class, () -> requestService.getAllRequests(9999L));
+    }
+
+    @Test
     void getRequestById_unknownRequest_throwsNotFoundException() {
         assertThrows(NotFoundException.class, () -> requestService.getRequestById(9999L, requestor.getId()));
+    }
+
+    @Test
+    void getRequestById_requestWithoutAnswer_throwsNotFoundException() {
+        Request request = saveRequest(requestor, "Нужна дрель", LocalDateTime.now());
+
+        assertThrows(NotFoundException.class,
+                () -> requestService.getRequestById(request.getId(), requestor.getId()));
     }
 
 }

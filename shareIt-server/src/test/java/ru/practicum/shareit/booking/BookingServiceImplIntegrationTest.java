@@ -84,6 +84,28 @@ class BookingServiceImplIntegrationTest {
     }
 
     @Test
+    void createBooking_unknownUser_throwsNotFoundException() {
+        BookingDto dto = BookingDto.builder()
+                .itemId(item.getId())
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .build();
+
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(dto, 9999L));
+    }
+
+    @Test
+    void createBooking_unknownItem_throwsNotFoundException() {
+        BookingDto dto = BookingDto.builder()
+                .itemId(9999L)
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .build();
+
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(dto, booker.getId()));
+    }
+
+    @Test
     void createBooking_unavailableItem_throwsBadRequestException() {
         item.setAvailable(false);
         itemRepository.save(item);
@@ -110,6 +132,28 @@ class BookingServiceImplIntegrationTest {
     }
 
     @Test
+    void updateBooking_rejectedByOwner_changesStatusToRejected() {
+        Booking booking = saveBooking(item, booker,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), Status.WAITING);
+
+        BookingUpdateDto result = bookingService.updateBooking(booking.getId(), owner.getId(), false);
+
+        assertEquals(Status.REJECTED, result.getStatus());
+        Booking saved = bookingRepository.findById(booking.getId()).orElseThrow();
+        assertEquals(Status.REJECTED, saved.getStatus());
+        assertTrue(itemRepository.findById(item.getId()).orElseThrow().getAvailable());
+    }
+
+    @Test
+    void updateBooking_unknownUser_throwsBadRequestException() {
+        Booking booking = saveBooking(item, booker,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), Status.WAITING);
+
+        assertThrows(BadRequestException.class,
+                () -> bookingService.updateBooking(booking.getId(), 9999L, true));
+    }
+
+    @Test
     void updateBooking_notOwner_throwsNotFoundException() {
         Booking booking = saveBooking(item, booker,
                 LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), Status.WAITING);
@@ -128,6 +172,22 @@ class BookingServiceImplIntegrationTest {
         assertEquals(booking.getId(), result.getId());
         assertEquals(item.getId(), result.getItemId());
         assertEquals(booker.getId(), result.getBooker().getId());
+    }
+
+    @Test
+    void getBookingById_returnsBookingForItemOwner() {
+        Booking booking = saveBooking(item, booker,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), Status.WAITING);
+
+        BookingDto result = bookingService.getBookingById(booking.getId(), owner.getId());
+
+        assertEquals(booking.getId(), result.getId());
+        assertEquals(item.getId(), result.getItemId());
+    }
+
+    @Test
+    void getBookingById_unknownBooking_throwsNotFoundException() {
+        assertThrows(NotFoundException.class, () -> bookingService.getBookingById(9999L, booker.getId()));
     }
 
     @Test
@@ -156,6 +216,45 @@ class BookingServiceImplIntegrationTest {
         Collection<BookingDto> waiting = bookingService.getAllByUser(booker.getId(), State.WAITING);
         assertEquals(1, waiting.size());
         assertEquals(oldBooking.getId(), waiting.iterator().next().getId());
+    }
+
+    @Test
+    void getAllByUser_filtersByState() {
+        Booking pastApproved = saveBooking(item, booker,
+                LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(2), Status.APPROVED);
+        Booking futureWaiting = saveBooking(item, booker,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), Status.WAITING);
+        Booking futureRejected = saveBooking(item, booker,
+                LocalDateTime.now().plusDays(3), LocalDateTime.now().plusDays(4), Status.REJECTED);
+
+        Collection<BookingDto> current = bookingService.getAllByUser(booker.getId(), State.CURRENT);
+        assertEquals(1, current.size());
+        assertEquals(pastApproved.getId(), current.iterator().next().getId());
+
+        Collection<BookingDto> past = bookingService.getAllByUser(booker.getId(), State.PAST);
+        assertEquals(1, past.size());
+        assertEquals(pastApproved.getId(), past.iterator().next().getId());
+
+        Collection<BookingDto> future = bookingService.getAllByUser(booker.getId(), State.FUTURE);
+        assertEquals(2, future.size());
+
+        Collection<BookingDto> rejected = bookingService.getAllByUser(booker.getId(), State.REJECTED);
+        assertEquals(1, rejected.size());
+        assertEquals(futureRejected.getId(), rejected.iterator().next().getId());
+
+        Collection<BookingDto> waiting = bookingService.getAllByUser(booker.getId(), State.WAITING);
+        assertEquals(1, waiting.size());
+        assertEquals(futureWaiting.getId(), waiting.iterator().next().getId());
+    }
+
+    @Test
+    void getAllByUser_unknownUser_throwsNotFoundException() {
+        assertThrows(NotFoundException.class, () -> bookingService.getAllByUser(9999L, State.ALL));
+    }
+
+    @Test
+    void getAllByOwner_unknownUser_throwsNotFoundException() {
+        assertThrows(NotFoundException.class, () -> bookingService.getAllByOwner(9999L, State.ALL));
     }
 
     @Test

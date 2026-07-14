@@ -115,6 +115,20 @@ class ItemServiceImplIntegrationTest {
     }
 
     @Test
+    void getAll_multipleBookingsOnItem_usesLatestBooking() {
+        Item item = saveItem(owner, "Дрель", true);
+        saveBooking(item, booker,
+                LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(4), Status.APPROVED);
+        Booking latest = saveBooking(item, booker,
+                LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1), Status.APPROVED);
+
+        Collection<ItemsDto> result = itemService.getAll(owner.getId());
+
+        assertEquals(1, result.size());
+        assertEquals(latest.getStart(), result.iterator().next().getStart());
+    }
+
+    @Test
     void getItemById_forOwner_returnsLastAndNextBookingAndComments() {
         Item item = saveItem(owner, "Дрель", true);
         Booking lastBooking = saveBooking(item, booker,
@@ -130,6 +144,20 @@ class ItemServiceImplIntegrationTest {
         assertEquals(nextBooking.getStart(), result.getNextBooking());
         assertEquals(1, result.getComments().size());
         assertEquals("Bob", result.getComments().get(0).getAuthorName());
+    }
+
+    @Test
+    void getItemById_forNonOwner_doesNotExposeBookingDates() {
+        Item item = saveItem(owner, "Дрель", true);
+        saveBooking(item, booker,
+                LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1), Status.APPROVED);
+        saveBooking(item, booker,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), Status.APPROVED);
+
+        ItemDto result = itemService.getItemById(item.getId(), booker.getId());
+
+        assertNull(result.getLastBooking());
+        assertNull(result.getNextBooking());
     }
 
     @Test
