@@ -36,7 +36,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleAnyException(Exception e) {
-        return new ErrorResponse("Ошибка сервера: " + e.getMessage());
+        return new ErrorResponse("Внутренняя ошибка сервера: " + e.getMessage());
     }
 
     public record ErrorResponse(String error) {
