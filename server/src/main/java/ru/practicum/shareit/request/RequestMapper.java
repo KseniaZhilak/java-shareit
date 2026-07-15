@@ -1,7 +1,7 @@
 package ru.practicum.shareit.request;
 
 import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.request.dto.AnswerDto;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.CreateRequestDto;
 import ru.practicum.shareit.request.dto.RequestDto;
 
@@ -37,8 +37,8 @@ public class RequestMapper {
                 .build();
     }
 
-    private static AnswerDto toAnswerDto(Item item) {
-        return AnswerDto.builder()
+    private static ItemRequestDto toAnswerDto(Item item) {
+        return ItemRequestDto.builder()
                 .item(item.getId())
                 .name(item.getName())
                 .requestor(item.getOwner().getId())

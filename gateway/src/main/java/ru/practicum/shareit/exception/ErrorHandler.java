@@ -33,6 +33,12 @@ public class ErrorHandler {
         return new ErrorResponse("Недопустимое значение параметра " + e.getName() + ": " + e.getValue());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleAnyException(Exception e) {
+        return new ErrorResponse("Ошибка сервера: " + e.getMessage());
+    }
+
     public record ErrorResponse(String error) {
     }
 }

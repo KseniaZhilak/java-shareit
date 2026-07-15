@@ -8,7 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.request.dto.AnswerDto;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.CreateRequestDto;
 import ru.practicum.shareit.request.dto.RequestDto;
 
@@ -41,7 +41,7 @@ class RequestControllerTest {
             .id(1L)
             .description("Нужна дрель")
             .created(LocalDateTime.of(2026, 7, 14, 12, 30, 45))
-            .items(List.of(AnswerDto.builder().item(5L).name("Дрель").requestor(2L).build()))
+            .items(List.of(ItemRequestDto.builder().item(5L).name("Дрель").requestor(2L).build()))
             .build();
 
     @Test

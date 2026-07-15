@@ -23,7 +23,7 @@ class RequestDtoJsonTest {
                 .id(1L)
                 .description("Нужна дрель")
                 .created(LocalDateTime.of(2026, 7, 14, 12, 30, 45))
-                .items(List.of(AnswerDto.builder().item(5L).name("Дрель").requestor(2L).build()))
+                .items(List.of(ItemRequestDto.builder().item(5L).name("Дрель").requestor(2L).build()))
                 .build();
 
         JsonContent<RequestDto> result = json.write(dto);
